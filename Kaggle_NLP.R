@@ -6,6 +6,9 @@ require(adabag)
 require(openNLP)
 require(tm)
 require(Snowball)
+require(stringr)
+
+
 Train_dat <- read.delim("D:/Rlab/W4242/Hw4/Kaggle/train.tsv", header=T, sep="\t")
 head(Train_dat)
 Train_dat[,3] <- as.character(Train_dat[,3])
@@ -50,40 +53,16 @@ Train_dat$word_count2 <- apply(Train_dat, 1, function(x) length(tokenize(x[7], l
 Train_dat$total_char <- apply(Train_dat, 1, function(x) nchar(gsub("([[:space:]]+)","",x[7]), type="chars", allowNA=F))
 
 ##### avg word length 
-Train_dat$avg_word_length <- Train_dat$total_char/Train_dat$word_count2
+Train_dat$avg_word_length <- Train_dat$total_char/Train_dat$word_count
 Train_dat$diff <- Train_dat$word_count-Train_dat$word_count2
 
-
-
-
-
-sentence <- "This is a short sentence consisting of some nouns, verbs, and adjectives."
-a1 <- tagPOS(sentence, language = "en")
-
-s <- "This is a sentence sentences. ? ! ! "
-
-ss <- tokenize(Train_dat[1,10], language = "en")
-
-length(ss)
-nchar(ss, type="chars", allowNA=F)
-a3 <-tagPOS(Train_dat[1,3], language="en")
-View(a2)
-
-?regexpr
-
-Train_dat[1,10]
-
-
-
-
-
-
-
-
-
-
-
-
+##### adj adv dt to in count
+essay_tagged <- as.data.frame(tagPOS(Train_dat[,3], language="en"))
+Train_dat$adj_count <- apply(essay_tagged, 1, function(x) sum(str_count(x, c("/JJ", "/JJR", "/JJS"))))
+Train_dat$adv_count <- apply(essay_tagged, 1, function(x) sum(str_count(x, c("/RB", "/RBR", "/RBS"))))
+Train_dat$to_count <- apply(essay_tagged, 1, function(x) str_count(x, "/TO"))
+Train_dat$dt_count <- apply(essay_tagged, 1, function(x) str_count(x, "/DT"))
+Train_dat$in_count <- apply(essay_tagged, 1, function(x) str_count(x, "/IN"))
 
 
 
@@ -104,7 +83,7 @@ train <- Train_dat2[,c(2,6:7)]
 mod1 <- boosting.cv(grade~., data=train,
                     v=5,boos=T,coeflearn="Breiman")
 # using RandomForrest
-mod2 <-randomForest(factor(grade)~set+word_count, data=Train_dat2,
+mod2 <-randomForest(factor(grade)~set+word_count2+avg_stnce_lgth+avg_word_length+sentence_count+adj_count+adv_count+to_count+dt_count+in_count, data=Train_dat2,
                     importance=TRUE,proximity=TRUE)
 
 mod2
