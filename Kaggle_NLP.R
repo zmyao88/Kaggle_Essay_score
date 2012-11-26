@@ -4,12 +4,20 @@ require(gdata)
 require(randomForest)
 require(adabag)
 require(openNLP)
+require(tm)
+require(Snowball)
 Train_dat <- read.delim("D:/Rlab/W4242/Hw4/Kaggle/train.tsv", header=T, sep="\t")
 head(Train_dat)
 Train_dat[,3] <- as.character(Train_dat[,3])
 
+
+##### plain txt for col 7
+Train_dat[,7] <- apply(Train_dat, 1, function(x) gsub("([[:punct:]]+)","",x[3]))
+names(Train_dat)[7] <- "Essay_Plain_Text"
+
+
 ##### Calculate Number of word in essay
-Train_dat[,7] <- apply(Train_dat, 1, function(x){
+Train_dat[,8] <- apply(Train_dat, 1, function(x){
     mm <- x[3]
     if (regexpr("[[:punct:]]+", mm) == 1)
     {
@@ -23,7 +31,7 @@ Train_dat[,7] <- apply(Train_dat, 1, function(x){
     return (nn)   
     #return(mm)
 })
-names(Train_dat)[7] <- c("word_count")
+names(Train_dat)[8] <- c("word_count")
 class(Train_dat[,2])
 Train_dat[,2] <- factor(Train_dat[,2])
 names(Train_dat)
@@ -33,7 +41,50 @@ sentence_count <- apply(Train_dat, 1, function(x) length(sentDetect(x[3], langua
 Train_dat <- cbind(Train_dat,sentence_count)
 
 ##### Calculate avg sentence length
-Train_dat$avg_stnce_lgth <- Train_dat[,7]/Train_dat[,8]
+Train_dat$avg_stnce_lgth <- Train_dat[,8]/Train_dat[,9]
+
+##### Calculate Word Count based on plain txt 
+Train_dat$word_count2 <- apply(Train_dat, 1, function(x) length(tokenize(x[7], language = "en")))
+
+##### Calculate Total chars in essay
+Train_dat$total_char <- apply(Train_dat, 1, function(x) nchar(gsub("([[:space:]]+)","",x[7]), type="chars", allowNA=F))
+
+##### avg word length 
+Train_dat$avg_word_length <- Train_dat$total_char/Train_dat$word_count2
+Train_dat$diff <- Train_dat$word_count-Train_dat$word_count2
+
+
+
+
+
+sentence <- "This is a short sentence consisting of some nouns, verbs, and adjectives."
+a1 <- tagPOS(sentence, language = "en")
+
+s <- "This is a sentence sentences. ? ! ! "
+
+ss <- tokenize(Train_dat[1,10], language = "en")
+
+length(ss)
+nchar(ss, type="chars", allowNA=F)
+a3 <-tagPOS(Train_dat[1,3], language="en")
+View(a2)
+
+?regexpr
+
+Train_dat[1,10]
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
