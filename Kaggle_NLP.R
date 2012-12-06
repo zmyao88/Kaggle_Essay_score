@@ -3,6 +3,7 @@ install.packages("openNLPmodels.en")
 require(gdata)
 require(randomForest)
 require(adabag)
+require(rpart)
 require(openNLP)
 require(tm)
 require(Snowball)
@@ -86,8 +87,12 @@ dat4 <- Train_dat2[Train_dat2[,2]==4,]
 dat5 <- Train_dat2[Train_dat2[,2]==5,]
 
 # using AdaBoosting 
-mod1 <- boosting.cv(grade~., data=train,
-                    v=5,boos=T,coeflearn="Breiman")
+?boosting.cv
+names(Train_dat3)
+Train_dat3 <- Train_dat2[,-c(1,3,4,5,12,14)]
+Train_dat3$grade <- factor(Train_dat3$grade)
+
+mod11 <- boosting.cv(grade ~ ., data=Train_dat3, v=10,boos=T,coeflearn="Breiman")
 # using RandomForrest
 mod1 <-randomForest(factor(grade)~word_count2+avg_stnce_lgth+avg_word_length+sentence_count+adj_count+adv_count+to_count+dt_count+in_count, data=dat1,
                     importance=TRUE,proximity=TRUE)
